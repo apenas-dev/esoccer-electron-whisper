@@ -34,38 +34,6 @@ export async function loadModel(onProgress?: ProgressCallback) {
   onProgress?.('Modelo carregado! ✅');
 }
 
-function audioBufferToWav(samples: Float32Array, sampleRate: number): Blob {
-  const buffer = new ArrayBuffer(44 + samples.length * 2);
-  const view = new DataView(buffer);
-
-  const writeString = (offset: number, str: string) => {
-    for (let i = 0; i < str.length; i++) view.setUint8(offset + i, str.charCodeAt(i));
-  };
-
-  writeString(0, 'RIFF');
-  view.setUint32(4, 36 + samples.length * 2, true);
-  writeString(8, 'WAVE');
-  writeString(12, 'fmt ');
-  view.setUint32(16, 16, true);
-  view.setUint16(20, 1, true);
-  view.setUint16(22, 1, true);
-  view.setUint32(24, sampleRate, true);
-  view.setUint32(28, sampleRate * 2, true);
-  view.setUint16(32, 2, true);
-  view.setUint16(34, 16, true);
-  writeString(36, 'data');
-  view.setUint32(40, samples.length * 2, true);
-
-  let offset = 44;
-  for (let i = 0; i < samples.length; i++) {
-    const s = Math.max(-1, Math.min(1, samples[i]));
-    view.setInt16(offset, s < 0 ? s * 0x8000 : s * 0x7fff, true);
-    offset += 2;
-  }
-
-  return new Blob([buffer], { type: 'audio/wav' });
-}
-
 export async function startRecording(onTranscription: TranscriptionCallback): Promise<void> {
   if (isRecording) return;
   isRecording = true;
@@ -98,18 +66,19 @@ export async function startRecording(onTranscription: TranscriptionCallback): Pr
       }
       chunks.length = 0;
 
-      const wavBlob = audioBufferToWav(merged, sampleRate);
-      wavBlob.arrayBuffer().then((ab: ArrayBuffer) => {
-        transcriber!(ab, {
-          chunk_length_s: 30,
-          stride_length_s: 5,
-          language: 'portuguese',
-          task: 'transcribe',
-        }).then((result: { text?: string }) => {
-          if (result.text?.trim()) {
-            onTranscription(result.text.trim());
-          }
-        });
+      // Pass Float32Array directly — Transformers.js handles resampling internally
+      const audioInput = new Float32Array(merged);
+      transcriber!(audioInput, {
+        chunk_length_s: 30,
+        stride_length_s: 5,
+        language: 'portuguese',
+        task: 'transcribe',
+        sampling_rate: sampleRate,
+        return_timestamps: false,
+      }).then((result: { text?: string }) => {
+        if (result.text?.trim()) {
+          onTranscription(result.text.trim());
+        }
       });
     }
   };
