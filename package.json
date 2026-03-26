@@ -9,12 +9,10 @@
     "dev:electron": "concurrently \"vite\" \"wait-on http://localhost:5173 && electron .\"",
     "build": "vite build && tsc -p tsconfig.electron.json",
     "preview": "vite preview",
-    "setup": "powershell -ExecutionPolicy Bypass -File setup.ps1",
-    "tauri": "tauri"
+    "postinstall": "tsx scripts/download-whisper.ts",
+    "setup": "powershell -ExecutionPolicy Bypass -File setup.ps1"
   },
   "dependencies": {
-    "@huggingface/transformers": "^3.4.1",
-    "@tauri-apps/api": "^2",
     "framer-motion": "^11.18.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1"
@@ -22,17 +20,16 @@
   "devDependencies": {
     "@playwright/test": "^1.58.2",
     "@tailwindcss/vite": "^4.0.0",
-    "@tauri-apps/cli": "^2.10.1",
     "@types/react": "^18.3.12",
     "@types/react-dom": "^18.3.1",
     "@vitejs/plugin-react": "^4.3.4",
     "concurrently": "^9.1.2",
     "electron": "^33.3.1",
+    "tsx": "^4.19.0",
     "tailwindcss": "^4.0.0",
     "typescript": "^5.7.0",
     "vite": "^6.0.0",
     "vite-plugin-electron": "^0.29.0",
-    "vite-plugin-electron-renderer": "^0.14.6",
     "wait-on": "^8.0.3"
   }
 }

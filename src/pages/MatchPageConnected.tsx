@@ -103,7 +103,7 @@ export function MatchPageConnected() {
 
       <footer className="mt-auto pt-8 pb-2">
         <p className="text-xs text-gray-700 text-center">
-          E-Soccer Battle V3 · Tauri Connected
+          E-Soccer Battle V3 · Electron + Whisper.cpp
         </p>
       </footer>
     </div>
